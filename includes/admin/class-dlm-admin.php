@@ -116,6 +116,14 @@ class DLM_Admin {
 							'label' 	=> __( 'Custom Template', 'download_monitor' ),
 							'desc'		=> __( 'Leaving this blank will use the default <code>content-download.php</code> template file. If you enter, for example, <code>image</code>, the <code>content-download-image.php</code> template will be used instead. You can add custom templates inside your theme folder.', 'download_monitor' )
 						),
+						array(
+							'name' 		=> 'dlm_unique_downloads',
+							'cb_label'  => __( 'Enable', 'download_monitor' ),
+							'std' 		=> '1',
+							'label' 	=> __( 'Only count unique downloads', 'download_monitor' ),
+							'desc'		=> __( 'Only counts unique downloads (unique IP address defines unique download).', 'download_monitor' ),
+							'type' 		=> 'checkbox'
+						),
 					),
 				),
 				'endpoints' => array(
