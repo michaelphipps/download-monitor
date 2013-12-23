@@ -36,41 +36,13 @@ class DLM_Download_Version {
 	 * @return void
 	 */
 	public function increase_download_count() {
-		// check if we are counting unique downloads only
-		$count_download = false;
-		if ( get_option( 'dlm_unique_downloads' ) == 1 ){
-			// if we are:
+		// File download_count
+		$this->download_count = absint( get_post_meta( $this->id, '_download_count', true ) ) + 1;
+		update_post_meta( $this->id, '_download_count', $this->download_count );
 
-			// get users ip address
-			$user_ip = sanitize_text_field( ! empty( $_SERVER['HTTP_X_FORWARD_FOR'] ) ? $_SERVER['HTTP_X_FORWARD_FOR'] : $_SERVER['REMOTE_ADDR'] );
-
-			// get list of ips that have downloaded this file
-			$download_ips = get_post_meta( $this->id, '_download_ips', true );
-			
-			// check if the users' IP address has already downloaded this file
-			if(in_array($user_ip, $download_ips)){
-				// if it has, don't count.
-				
-			} else {
-				// if it hasn't, add the ip to the array and count
-				$download_ips[] = $user_ip;
-				update_post_meta( $this->id, '_download_ips', $download_ips);
-				$count_download = true;
-			}
-		} else {
-			// we're not counting unique downloads.  Count Download!
-			$count_download = true;
-		}
-
-		if ($count_download){
-			// File download_count
-			$this->download_count = absint( get_post_meta( $this->id, '_download_count', true ) ) + 1;
-			update_post_meta( $this->id, '_download_count', $this->download_count );
-
-			// Parent download download_count
-			$parent_download_count = absint( get_post_meta( $this->download_id, '_download_count', true ) ) + 1;
-			update_post_meta( $this->download_id, '_download_count', $parent_download_count );
-		}
+		// Parent download download_count
+		$parent_download_count = absint( get_post_meta( $this->download_id, '_download_count', true ) ) + 1;
+		update_post_meta( $this->download_id, '_download_count', $parent_download_count );		
 	}
 
 	/**

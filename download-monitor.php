@@ -42,6 +42,9 @@ class WP_DLM {
 		// Table for logs
 		$wpdb->download_log = $wpdb->prefix . 'download_log';
 
+		// Table for tracking unique download ips
+		$wpdb->download_unique_ips = $wpdb->prefix . 'download_unique_ips';
+
 		// Include required files
 		if ( is_admin() )
 			include_once( 'includes/admin/class-dlm-admin.php' );
@@ -198,6 +201,15 @@ class WP_DLM {
 	) $collate;
 	";
 	    dbDelta( $dlm_tables );
+
+	    $dui_table = "
+	CREATE TABLE {$wpdb->download_unique_ips} (
+	  user_ip varchar(200) NOT NULL,	  
+	  download_id bigint(20) NOT NULL,	
+	  PRIMARY KEY  (user_ip)	  
+	) $collate;
+	";
+	    dbDelta( $dui_table );
 	}
 
 	/**

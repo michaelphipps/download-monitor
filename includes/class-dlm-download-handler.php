@@ -162,7 +162,28 @@ class DLM_Download_Handler {
 
 		if ( empty( $_COOKIE['wp_dlm_downloading'] ) || $download->id != $_COOKIE['wp_dlm_downloading'] ) {
 			// Increase download count
-			$version->increase_download_count();
+
+			// By default we are counting downloads
+			$count_download = true;
+
+			// check if we are counting unique downloads only
+			if ( get_option( 'dlm_unique_downloads' ) == 1 ){
+				// yes - only count unique downloads
+				
+				// get users ip address
+				$user_ip = sanitize_text_field( ! empty( $_SERVER['HTTP_X_FORWARD_FOR'] ) ? $_SERVER['HTTP_X_FORWARD_FOR'] : $_SERVER['REMOTE_ADDR'] );
+			
+				// check if the IP address being used to download this file is unique
+				$count_download = $this->check_unique_download_ip( $user_ip, $download->id );			
+
+				// store the download ip to prevent it being counted in future
+				$this->store_download_ip( $user_ip, $download->id );
+			} 
+
+			if ($count_download){
+				// If count_download is true, increase download count
+				$version->increase_download_count();
+			}
 
 			// Trigger Download Action
 			do_action( 'dlm_downloading', $download, $version, $file_path );
@@ -383,6 +404,61 @@ class DLM_Download_Handler {
 
 		return $status;
 	}
+
+
+	/**
+	 * check_unique_ip
+	 *
+	 * Checks if the ip address has been used to download the file previously
+	 * Answers the question: "Is the IP for this download unique?"
+	 *
+	 * @access   public
+	 * @param    string    ip address
+	 * @param    int   	   download id
+	 * @return   boolean   return true or false
+	 */
+	public function check_unique_download_ip( $ip, download_id ) {
+		global $wpdb;
+
+		$sql = $wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->download_unique_ips} 
+            WHERE ip = %d 
+            AND download_id = %d", 
+           $ip, $download_id  );
+		
+		$ip_count = $wpdb->get_var($sql);
+		
+		if ($ip_count != 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+
+	/**
+	 * store_download_ip
+	 *
+	 * Stores the ip address being used to download a file
+	 *
+	 * @access   public
+	 * @param    string    ip address
+	 * @param    int   	   download id
+	 * @return   void
+	 */
+	public function store_download_ip( $ip, download_id ) {
+		global $wpdb;
+
+		$sql = $wpdb->prepare("INSERT IGNORE INTO {$wpdb->download_unique_ips} 
+            (ip, download_id) 
+            VALUES(%d, %d)", 
+           $ip, $download_id  );
+		
+		$ip = $wpdb->query($sql);
+	}
+
+
+	
+
 }
 
 $GLOBALS['DLM_Download_Handler'] = new DLM_Download_Handler();
